@@ -76,11 +76,12 @@ Claude Code 플러그인은 `~/.claude/plugins/installed_plugins.json` 에서
 - `scope: "user"` → 모든 프로젝트에서 공유 ✅
 - `scope: "project"` 또는 `scope: "local"` → 특정 프로젝트에만 활성화
 
-### 2026-04-12 기준 user scope 플러그인 (7 개)
+### 2026-04-12 기준 user scope 플러그인 (8 개)
 
 | 이름 | 용도 |
 |------|------|
 | `frontend-design` | 프론트엔드 디자인 원칙 · /audit /polish /critique 등 |
+| `superpowers` | brainstorming · debugging · TDD · 메타 스킬 프레임워크 (v5.0.7) |
 | `github` | GitHub 이슈 · PR · 릴리스 관리 |
 | `figma` | Figma 디자인 파일 연동 |
 | `context7` | 최신 라이브러리 문서 조회 |
@@ -93,8 +94,8 @@ Claude Code 를 띄워도 그대로 사용 가능.
 
 ### project scope 로 남긴 플러그인
 
-- `superpowers` / `code-review` — 현재 SodamFN 에만 설치됨. 다른 프로젝트에서
-  필요하면 해당 프로젝트 디렉토리에서 `/plugin install` 로 별도 설치.
+- `code-review` — 현재 SodamFN 에만 설치됨. 다른 프로젝트에서 필요하면
+  해당 프로젝트 디렉토리에서 `/plugin install` 로 별도 설치하거나 user scope 로 승격 요청.
 
 ### 새 플러그인 추가 절차
 

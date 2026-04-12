@@ -9,6 +9,13 @@
       "source": "claude-plugins-official marketplace"
     },
     {
+      "name": "superpowers@claude-plugins-official",
+      "purpose": "superpowers 5.0.7 — brainstorming · debugging · TDD · 기타 메타-스킬 프레임워크",
+      "source": "claude-plugins-official marketplace",
+      "version": "5.0.7",
+      "promoted_to_user_at": "2026-04-12"
+    },
+    {
       "name": "github@claude-plugins-official",
       "purpose": "GitHub 이슈 · PR · 릴리스 관리",
       "source": "claude-plugins-official marketplace"
@@ -41,16 +48,10 @@
   ],
   "project_scope_plugins": [
     {
-      "name": "superpowers@claude-plugins-official",
-      "scope": "project",
-      "projectPath": "c:\\WORK\\SodamFN",
-      "note": "SodamFN 전용. 필요 시 다른 프로젝트에서도 /plugin install 로 설치."
-    },
-    {
       "name": "code-review@claude-plugins-official",
       "scope": "project",
       "projectPath": "c:\\WORK\\SodamFN",
-      "note": "SodamFN 전용. 필요 시 다른 프로젝트에서도 설치."
+      "note": "SodamFN 전용. 필요 시 user scope 로 승격 요청."
     }
   ]
 }
