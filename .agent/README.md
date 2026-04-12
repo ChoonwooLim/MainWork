@@ -17,11 +17,11 @@
 ├── workflows/                  # 공용 워크플로우 md (프로젝트 무관)
 │   ├── finish-work.md
 │   └── ssh-server.md
-├── skills/                     # 범용 스킬 24 개 (Impeccable 디자인 시스템 등)
+├── skills/                     # 범용 스킬 26 개 (Impeccable 디자인 시스템 + 공용 워크플로우)
 │   ├── adapt/ animate/ arrange/ audit/ bolder/ clarify/ code-review/
-│   ├── colorize/ critique/ delight/ distill/ extract/ frontend-design/
+│   ├── colorize/ critique/ delight/ distill/ end/ extract/ frontend-design/
 │   ├── harden/ init/ normalize/ onboard/ optimize/ overdrive/ polish/
-│   └── quieter/ teach-impeccable/ typeset/ ultraplan/
+│   ├── quieter/ start/ teach-impeccable/ typeset/ ultraplan/
 └── plugins-manifest.json       # 사용자 레벨 플러그인 스냅샷
 ```
 
@@ -54,17 +54,27 @@ cp -r ~/.claude/skills/{adapt,animate,...,ultraplan} C:/WORK/.agent/skills/
 cd C:/WORK && git add .agent/skills && git commit -m "chore: skill update" && git push
 ```
 
-### 프로젝트 전용 스킬
+### 공용 세션 스킬 — `/start` · `/end`
 
-다음 3 개는 **TwinverseAI 전용**이라 이 공용 디렉토리에 넣지 않음
-(하드코딩된 `c:\WORK\TwinverseAI` 경로 포함):
+2026-04-12 부터 `start` 와 `end` 가 **모든 프로젝트 공용 스킬**로 승격되었다
+(이전 TwinverseAI 전용 하드코딩 버전 삭제).
 
-- `start`  — TwinverseAI 세션 시작 (git log, orbitron server 체크 등)
-- `end`    — TwinverseAI docs 자동 업데이트
-- `project-start` — TwinverseAI start/end 파이프라인
+| 스킬 | 동작 |
+|------|------|
+| `/start` | 프로젝트 루트 자동 감지(`git rev-parse`) → 오늘 커밋 → `docs/work-log.md` 확인 → Opt-in Orbitron/twinverse-ai 체크 → 3-5 줄 보고 |
+| `/end`   | 커밋 카테고리 분류 → **없는 `docs/` 문서 템플릿 자동 생성** (work-log/bugfix-log/upgrade-log/dev-plan) → append 업데이트 → 커밋 → 푸시 → 보고 |
 
-다른 프로젝트에서 비슷한 스킬이 필요하면 각 프로젝트 `.claude/skills/` 에
-프로젝트-고유 버전으로 만든다 (하드코딩 경로는 그 프로젝트 것으로).
+**자동 감지 · 자동 생성 원칙**:
+- 프로젝트 경로 하드코딩 없음 — `git rev-parse --show-toplevel` 로 탐지
+- `docs/` 디렉토리나 4개 기본 문서가 없으면 `/end` 가 자동 생성
+- Orbitron SSH 체크는 `docs/orbitron-server.md` 가 있는 프로젝트에만 opt-in
+- 프론트엔드 스킬/플러그인 JSON 동기화는 `frontend/src/data/skills.json` 이 있는 프로젝트에만 opt-in
+
+### 프로젝트 전용 스킬 (공용 디렉토리 미포함)
+
+- `project-start` — **TwinverseAI 전용**. FastAPI + React + Vite 스택 가정, `seed_admin.py`,
+  MCP 서버 10개 세팅 등 TwinverseAI 고유 단계 포함. 다른 프로젝트에서 비슷한
+  부트스트랩이 필요하면 각 프로젝트 `.claude/skills/` 에 고유 버전으로 작성.
 
 ---
 
