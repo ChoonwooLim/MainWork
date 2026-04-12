@@ -1,0 +1,56 @@
+{
+  "_comment": "C:\\WORK 공용 플러그인 매니페스트 (user scope) — 2026-04-12 스냅샷",
+  "_source": "C:\\Users\\choon\\.claude\\plugins\\installed_plugins.json",
+  "_note": "user scope 플러그인만 여기에 기록. project/local scope 는 해당 프로젝트 CLAUDE.md 참조.",
+  "user_scope_plugins": [
+    {
+      "name": "frontend-design@claude-plugins-official",
+      "purpose": "프론트엔드 디자인 원칙 · 디자인 스킬 호출 (audit/polish/critique 등)",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "github@claude-plugins-official",
+      "purpose": "GitHub 이슈 · PR · 릴리스 관리",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "figma@claude-plugins-official",
+      "purpose": "Figma 디자인 파일 연동",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "context7@claude-plugins-official",
+      "purpose": "최신 라이브러리 문서 조회 (upstash/context7-mcp)",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "feature-dev@claude-plugins-official",
+      "purpose": "기능 개발 워크플로우 에이전트",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "telegram@claude-plugins-official",
+      "purpose": "Telegram 알림 발송",
+      "source": "claude-plugins-official marketplace"
+    },
+    {
+      "name": "supabase@claude-plugins-official",
+      "purpose": "Supabase DB · Auth · Storage 연동",
+      "source": "claude-plugins-official marketplace"
+    }
+  ],
+  "project_scope_plugins": [
+    {
+      "name": "superpowers@claude-plugins-official",
+      "scope": "project",
+      "projectPath": "c:\\WORK\\SodamFN",
+      "note": "SodamFN 전용. 필요 시 다른 프로젝트에서도 /plugin install 로 설치."
+    },
+    {
+      "name": "code-review@claude-plugins-official",
+      "scope": "project",
+      "projectPath": "c:\\WORK\\SodamFN",
+      "note": "SodamFN 전용. 필요 시 다른 프로젝트에서도 설치."
+    }
+  ]
+}
