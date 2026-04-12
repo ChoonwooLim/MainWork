@@ -1,0 +1,13 @@
+# No secrets in this repo
+*.env
+*.key
+*.pem
+*.p12
+secrets/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

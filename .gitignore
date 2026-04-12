@@ -1,0 +1,85 @@
+# ============================================================================
+# C:\WORK workspace meta-repository
+# ----------------------------------------------------------------------------
+# 각 프로젝트 서브디렉토리는 자체 git 저장소를 가짐. 이 outer repo 는
+# 루트 레벨의 공용 리소스만 추적함:
+#   - .agent/workflows/   (공용 워크플로우 md)
+#   - infra-docs/          (AI 공유 레지스트리 SSOT)
+#   - .gitignore           (이 파일)
+#   - 기타 루트 레벨 문서/스크립트 (이후 추가)
+#
+# 프로젝트 폴더는 전부 이그노어. 추가하면 이 파일 맨 아래에 한 줄 추가.
+# ============================================================================
+
+# ── 프로젝트 서브디렉토리 (각자 자체 git repo) ──
+/2025NUKE/
+/Artifex.AI/
+/ArtifexPro/
+/AutoShorts_DT/
+/ContentsHub/
+/EDU_SaaS/
+/F-Team2050/
+/IIFF/
+/OpenClaw/
+/ProjectKYHR/
+/Remote_AGT/
+/SEMHANA/
+/SodamFN/
+/TwinVerse/
+/TwinVerse-Template/
+/TwinverseAI/
+/TwinverseDesk/
+/UnrealEngine/
+/WRA/
+/artifex.ai-studio-pro/
+/proposal-agent/
+/낙엽의 추억/
+/소담김밥/
+
+# ── 루트 레벨 쓰레기/임시 파일 ──
+/test.db
+
+# infra-docs 의 과거 git 히스토리 백업 (복구용 — 커밋 안 함)
+/.infra-docs.bundle
+
+# ── OS / 에디터 노이즈 ──
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ── Node ──
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── 비밀값 (루트에 절대 커밋 금지) ──
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials.json
+
+# ── 빌드 산출물 ──
+dist/
+build/
+*.log
