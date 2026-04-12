@@ -1,7 +1,7 @@
 {
   "_comment": "C:\\WORK 공용 플러그인 매니페스트 (user scope) — 2026-04-12 스냅샷",
   "_source": "C:\\Users\\choon\\.claude\\plugins\\installed_plugins.json",
-  "_note": "user scope 플러그인만 여기에 기록. project/local scope 는 해당 프로젝트 CLAUDE.md 참조.",
+  "_note": "2026-04-12 현재 모든 플러그인이 user scope. project/local scope 플러그인 없음.",
   "user_scope_plugins": [
     {
       "name": "frontend-design@claude-plugins-official",
@@ -44,14 +44,13 @@
       "name": "supabase@claude-plugins-official",
       "purpose": "Supabase DB · Auth · Storage 연동",
       "source": "claude-plugins-official marketplace"
-    }
-  ],
-  "project_scope_plugins": [
+    },
     {
       "name": "code-review@claude-plugins-official",
-      "scope": "project",
-      "projectPath": "c:\\WORK\\SodamFN",
-      "note": "SodamFN 전용. 필요 시 user scope 로 승격 요청."
+      "purpose": "코드 리뷰 에이전트 — 주요 작업 완료 후 계획/표준 대비 검토",
+      "source": "claude-plugins-official marketplace",
+      "promoted_to_user_at": "2026-04-12"
     }
-  ]
+  ],
+  "project_scope_plugins": []
 }
