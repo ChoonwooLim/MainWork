@@ -169,13 +169,15 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 > **현재 운영**: DeskRPG (`tvdesk.twinverse.org`) 에서 AI NPC 동료 시스템으로 실사용 중.
 > **Office 재사용 예정**: TwinverseAI Office 메타버스 Tier 2 에이전트 NPC (AI 비서, AI 개발자 등).
 
-- **엔드포인트**: `ws://<host>:18789` (기본, `OPENCLAW_PORT=18789`)
+- **운영 엔드포인트 (production)**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw` (Hostinger VPS, HTTPS/WSS 443)
+  - Web UI (chat playground): `https://openclaw-apco.srv1557851.hstgr.cloud/`
+- **로컬/LAN 기본**: `ws://<host>:18789` (self-hosted, `OPENCLAW_PORT=18789`)
 - **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
 - **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
 - **지원 모델 예시**: `openai-codex/gpt-5.4`, `anthropic-claude-code/sonnet-4-6`, (그 외 OpenClaw 플러그인 모델)
 - **세션**: `agent:{agentId}:{sessionName}` 키로 persistent
 - **환경변수 (표준)**:
-  - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL (예: `ws://192.168.219.101:18789`)
+  - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL (운영: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`)
   - `OPENCLAW_TOKEN` — Orbitron secrets (실제 값 여기 금지)
   - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
 - **참조 클라이언트**: `C:\WORK\TwinverseAI\deskrpg-master\src\lib\openclaw-gateway.js` (Node.js) — Office 백엔드에서 Python 으로 포팅 시 참조
