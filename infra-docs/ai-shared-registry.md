@@ -9,7 +9,7 @@
 
 - **위치**: `C:\WORK\infra-docs\ai-shared-registry.md` (git repo: `C:\WORK\infra-docs`)
 - **최초 작성**: 2026-04-12
-- **마지막 업데이트**: 2026-04-12 (이관 완료 · A/B 벤치마크 · HW 경고 · 전 프로젝트 동기화)
+- **마지막 업데이트**: 2026-04-15 (NPC 대화 권장 모델 `gemma3:12b` 추가 · TwinverseAI Office 멀티플레이어 피벗 반영)
 - **관리자**: Steven Lim
 
 ---
@@ -70,6 +70,18 @@
 | `mistral:7b` | 4.4 GB | 범용 · 빠름 | 기본 텍스트 태스크 | 공용 |
 | `llava:7b` | 4.7 GB | **멀티모달(비전)** | 이미지 설명 · 영수증 OCR · 메뉴 인식 | SodamFN (OCR 후보) |
 | `qwen2.5:0.5b` | 0.4 GB | 초경량 · 초고속 | 간단 분류 · 키워드 추출 | 공용 |
+| `gemma3:12b` | 8.1 GB | 한국어 · 빠른 응답 ⭐ | **Office 메타버스 NPC 대화** (200자 이하 말풍선) | TwinverseAI (NPC) |
+| `gemma4:e4b` | 9.6 GB | 중간 품질 · 속도 균형 | NPC 대화 대안 · 일반 대화 | TwinverseAI (NPC 대안) |
+| `gemma4:26b` | 18 GB | 고품질 | 중요 NPC (비서) · 요약 고품질 | 공용 (선택적) |
+| `gemma4:31b` | 20 GB | 최고 품질 | 복잡 추론 · 심도 문서 분석 | 공용 (선택적) |
+
+#### NPC 대화 권장 설정 (TwinverseAI Office)
+
+- **1차 모델**: `gemma3:12b` — VRAM 8 GB, 한국어 OK, 6 플레이어 × 10 NPC 동시성 기준 3090 1장 수용
+- **호출 경로**: `POST http://192.168.219.117:11434/api/chat` (backend `/api/npc/chat` 프록시)
+- **환경변수**: `OLLAMA_URL=http://192.168.219.117:11434`, `NPC_OLLAMA_MODEL=gemma3:12b`
+- **폴백**: `NPC_LLM_FALLBACK=anthropic` + `NPC_LLM_FALLBACK_API_KEY=...` (Ollama 장애 시만)
+- **rate limit**: backend `/api/npc/chat` = 120/min (슬롯당 6명 × NPC 10명 동시 대화 피크 대응)
 
 **추가 권장 모델** (미설치, 필요 시 pull):
 - `qwen2.5:14b` · `qwen2.5:32b` — 고품질 한국어 (RTX 3090 24GB면 14b 4-bit 여유)
