@@ -51,7 +51,7 @@
 | 8300 | ComfyUI | 📝 예약 | 공용 | LAN |
 | 8400 | SDXL / Stable Diffusion WebUI | 📝 예약 | 공용 | LAN |
 | 8500 | Embedding server (bge/e5) | 📝 예약 | 공용 | LAN |
-| 18789 | **OpenClaw Gateway** (WebSocket RPC, CLI 에이전트 브로커) | ✅ 운영 (DeskRPG) / 📝 Office Tier 2 NPC 재사용 예정 | 공용 | LAN |
+| 18789 | **OpenClaw Gateway** (WebSocket RPC, CLI 에이전트 브로커) | ✅ 운영 (LAN twinverse-ai / 공용 openclaw-apco.srv1557851.hstgr.cloud) | 공용 | LAN + Public |
 
 범례: ✅ 운영 · 🔄 이관 중 · 📝 예약(미구축) · ❌ 폐기
 
@@ -166,28 +166,38 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 
 > **WebSocket RPC 게이트웨이** — ChatGPT / Claude Code / Gemini 등 CLI 에이전트에 persistent session + 도구 사용 + 스트리밍 응답을 제공하는 통합 계층.
 >
-> **현재 운영**: DeskRPG (`tvdesk.twinverse.org`) 에서 AI NPC 동료 시스템으로 실사용 중.
-> **Office 재사용 예정**: TwinverseAI Office 메타버스 Tier 2 에이전트 NPC (AI 비서, AI 개발자 등).
+> **운영 중 인스턴스 2종** (2026-04-15 기준):
+> 1. **LAN (twinverse-ai, 신규)** — TwinverseAI Office Tier 2 NPC 전용. Ollama 백엔드로 운영 (무료·내부망).
+> 2. **Hostinger VPS (기존)** — DeskRPG (`tvdesk.twinverse.org`) AI 동료 시스템, ChatGPT Codex OAuth 로 운영.
+>
+> 두 인스턴스는 독립 (상태/세션/auth 공유 없음). DeskRPG 는 기존 Hostinger 유지, 신규 LAN 인스턴스는 Office NPC 전용.
 
-- **운영 엔드포인트 (production)**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw` (Hostinger VPS, HTTPS/WSS 443)
+- **LAN 엔드포인트 (1순위, Office NPC 권장)**: `ws://192.168.219.117:18789` (twinverse-ai, host network)
+  - 백엔드 모델: Ollama (`ollama/qwen2.5:7b` 기본, tool-capable) — OAuth 불필요, 완전 오프라인 가능
+  - Ollama 미지원 모델: gemma3:12b/gemma4:26b (tools 미지원이라 Agent 용도엔 부적합, 단순 LLM 용만)
+- **Hostinger 엔드포인트 (DeskRPG 전용)**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
   - Web UI (chat playground): `https://openclaw-apco.srv1557851.hstgr.cloud/`
-- **로컬/LAN 기본**: `ws://<host>:18789` (self-hosted, `OPENCLAW_PORT=18789`)
+  - 백엔드 모델: `openai-codex/gpt-5.4` (ChatGPT Plus OAuth, refresh 이슈 취약)
 - **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
 - **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
 - **지원 모델 예시**: `openai-codex/gpt-5.4`, `anthropic-claude-code/sonnet-4-6`, (그 외 OpenClaw 플러그인 모델)
 - **세션**: `agent:{agentId}:{sessionName}` 키로 persistent
 - **환경변수 (표준)**:
-  - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL (운영: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`)
-  - `OPENCLAW_TOKEN` — Orbitron secrets (실제 값 여기 금지)
+  - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL
+    - Office: `ws://192.168.219.117:18789` (LAN, 권장)
+    - DeskRPG: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
+  - `OPENCLAW_TOKEN` — 게이트웨이 인증 토큰 (각 인스턴스 `/data/.openclaw/openclaw.json` 의 `gateway.auth.token`, Orbitron secrets 로만 보관)
   - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
+    - Office 권장: `ollama/qwen2.5:7b` (tool-capable)
+    - DeskRPG: `openai-codex/gpt-5.4`
 - **참조 클라이언트**: `C:\WORK\TwinverseAI\deskrpg-master\src\lib\openclaw-gateway.js` (Node.js) — Office 백엔드에서 Python 으로 포팅 시 참조
 
 #### 용도 매트릭스
 
-| 용도 | 프로젝트 | 에이전트 수 | 비고 |
-|------|---------|------------|------|
-| NPC 동료 (업무 위임, 2D) | DeskRPG | 채널별 n명 | ✅ 운영 |
-| Tier 2 에이전트 NPC (3D) | TwinverseAI Office | 슬롯당 최대 3명 | 📝 Phase 0.5 Task 0.5.12 |
+| 용도 | 프로젝트 | 인스턴스 | 에이전트 수 | 비고 |
+|------|---------|---------|------------|------|
+| NPC 동료 (업무 위임, 2D) | DeskRPG | Hostinger VPS | 채널별 n명 | ✅ 운영, ChatGPT Codex |
+| Tier 2 에이전트 NPC (3D) | TwinverseAI Office | LAN twinverse-ai | 슬롯당 최대 3명 | ✅ 운영, Ollama qwen2.5:7b |
 
 ---
 
