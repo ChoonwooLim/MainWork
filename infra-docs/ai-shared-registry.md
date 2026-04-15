@@ -51,6 +51,7 @@
 | 8300 | ComfyUI | 📝 예약 | 공용 | LAN |
 | 8400 | SDXL / Stable Diffusion WebUI | 📝 예약 | 공용 | LAN |
 | 8500 | Embedding server (bge/e5) | 📝 예약 | 공용 | LAN |
+| 18789 | **OpenClaw Gateway** (WebSocket RPC, CLI 에이전트 브로커) | ✅ 운영 (DeskRPG) / 📝 Office Tier 2 NPC 재사용 예정 | 공용 | LAN |
 
 범례: ✅ 운영 · 🔄 이관 중 · 📝 예약(미구축) · ❌ 폐기
 
@@ -160,6 +161,31 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 
 ### 3.4 STT (예약, 미구축)
 - Whisper large-v3 / faster-whisper
+
+### 3.5 OpenClaw Gateway (CLI 에이전트 브로커)
+
+> **WebSocket RPC 게이트웨이** — ChatGPT / Claude Code / Gemini 등 CLI 에이전트에 persistent session + 도구 사용 + 스트리밍 응답을 제공하는 통합 계층.
+>
+> **현재 운영**: DeskRPG (`tvdesk.twinverse.org`) 에서 AI NPC 동료 시스템으로 실사용 중.
+> **Office 재사용 예정**: TwinverseAI Office 메타버스 Tier 2 에이전트 NPC (AI 비서, AI 개발자 등).
+
+- **엔드포인트**: `ws://<host>:18789` (기본, `OPENCLAW_PORT=18789`)
+- **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
+- **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
+- **지원 모델 예시**: `openai-codex/gpt-5.4`, `anthropic-claude-code/sonnet-4-6`, (그 외 OpenClaw 플러그인 모델)
+- **세션**: `agent:{agentId}:{sessionName}` 키로 persistent
+- **환경변수 (표준)**:
+  - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL (예: `ws://192.168.219.101:18789`)
+  - `OPENCLAW_TOKEN` — Orbitron secrets (실제 값 여기 금지)
+  - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
+- **참조 클라이언트**: `C:\WORK\TwinverseAI\deskrpg-master\src\lib\openclaw-gateway.js` (Node.js) — Office 백엔드에서 Python 으로 포팅 시 참조
+
+#### 용도 매트릭스
+
+| 용도 | 프로젝트 | 에이전트 수 | 비고 |
+|------|---------|------------|------|
+| NPC 동료 (업무 위임, 2D) | DeskRPG | 채널별 n명 | ✅ 운영 |
+| Tier 2 에이전트 NPC (3D) | TwinverseAI Office | 슬롯당 최대 3명 | 📝 Phase 0.5 Task 0.5.12 |
 
 ---
 
