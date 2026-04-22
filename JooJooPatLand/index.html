@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JooJoo Land — 34필지 경계 지도</title>
+
+  <!-- Leaflet (2D) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Cesium (3D) — lazy loaded in cesium-app.js 로도 가능하나 간단히 상단 로딩 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.118/Build/Cesium/Widgets/widgets.css" />
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.118/Build/Cesium/Cesium.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 프로젝트 관리 모달 -->
+  <div id="projects-modal" class="modal hidden">
+    <div class="modal-content projects-modal-content">
+      <div class="editor-header">
+        <h2>프로젝트 관리</h2>
+        <button id="projects-close" class="editor-close-btn" title="닫기">✕</button>
+      </div>
+      <div class="projects-save-row">
+        <input type="text" id="projects-new-name" placeholder="새 프로젝트 이름" />
+        <button id="projects-save-new" class="editor-btn-primary">현재 세팅을 새 프로젝트로 저장</button>
+        <button id="projects-import" class="editor-btn-secondary">JSON 가져오기</button>
+        <input type="file" id="projects-file-input" accept=".json" style="display:none" />
+      </div>
+      <div id="projects-list" class="projects-list"></div>
+      <p class="hint">• <strong>불러오기</strong>: 해당 프로젝트로 전환 (페이지 재로드) · <strong>덮어쓰기</strong>: 현재 세팅을 그 프로젝트에 저장</p>
+    </div>
+  </div>
+
+  <!-- 필지 편집 모달 -->
+  <div id="editor-modal" class="modal hidden">
+    <div class="modal-content editor-modal-content">
+      <div class="editor-header">
+        <h2>필지 편집</h2>
+        <button id="editor-close" class="editor-close-btn" title="닫기">✕</button>
+      </div>
+      <div class="editor-prefix-row">
+        <label>주소 prefix</label>
+        <input type="text" id="editor-prefix" placeholder="예: 경기도 양평군 양동면" />
+        <span class="hint">리/지번 앞에 붙는 공통 주소 (VWorld 지오코딩용)</span>
+      </div>
+      <div class="editor-table-wrap">
+        <table class="editor-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>동/리</th>
+              <th>지번</th>
+              <th>지목</th>
+              <th>면적(㎡)</th>
+              <th>평</th>
+              <th>소유자</th>
+              <th>비고</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="editor-tbody"></tbody>
+        </table>
+      </div>
+      <div class="editor-actions">
+        <button id="editor-add-row" class="editor-btn-secondary">+ 행 추가</button>
+        <button id="editor-import" class="editor-btn-secondary">JSON 가져오기</button>
+        <button id="editor-export" class="editor-btn-secondary">JSON 내보내기</button>
+        <button id="editor-reset" class="editor-btn-danger">기본값 복원</button>
+        <span style="flex:1"></span>
+        <button id="editor-cancel" class="editor-btn-secondary">취소</button>
+        <button id="editor-save" class="editor-btn-primary">저장 후 다시 로드</button>
+      </div>
+      <input type="file" id="editor-file-input" accept=".json" style="display:none" />
+    </div>
+  </div>
+
+  <!-- VWorld API 키 설정 모달 -->
+  <div id="key-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>VWorld API 키 필요</h2>
+      <p>
+        지적(필지) 경계선을 불러오기 위해 국토교통부 <strong>VWorld</strong> API 키가 필요합니다.<br/>
+        무료 발급 (1분 소요):
+      </p>
+      <ol>
+        <li><a href="https://www.vworld.kr/dev/v4api.do" target="_blank" rel="noopener">VWorld 오픈API 페이지</a> → 로그인</li>
+        <li>"인증키 발급" → 서비스 URL에 <code id="domain-hint">http://localhost:8000</code> 입력</li>
+        <li>발급된 키 아래에 붙여넣기</li>
+      </ol>
+      <div class="key-input-row">
+        <input type="text" id="key-input" placeholder="VWorld API 키 붙여넣기" />
+        <button id="key-save">저장</button>
+      </div>
+      <p class="hint">키는 브라우저 localStorage 에 저장됩니다 (서버 전송 없음).</p>
+    </div>
+  </div>
+
+  <!-- 헤더 -->
+  <header>
+    <div class="header-left">
+      <h1>🗺️ JooJoo Land</h1>
+      <div class="subtitle">경기도 양평군 양동면 · 34필지 · 약 51.7ha (15.6만평)</div>
+    </div>
+    <div class="header-right">
+      <div class="view-toggle">
+        <button id="mode-2d" class="mode-btn active">2D</button>
+        <button id="mode-3d" class="mode-btn">3D</button>
+      </div>
+      <div class="progress" id="progress">
+        <span id="progress-text">대기 중...</span>
+        <div class="progress-bar"><div id="progress-bar-fill"></div></div>
+      </div>
+      <button id="open-projects" title="프로젝트 관리">📁 <span id="active-project-label">—</span></button>
+      <button id="open-editor" title="필지 편집">✏️ 편집</button>
+      <button id="reset-key" title="키 재설정">🔑</button>
+    </div>
+  </header>
+
+  <!-- 메인 레이아웃 -->
+  <main>
+    <aside id="sidebar">
+      <div class="sidebar-section">
+        <h3>필터</h3>
+        <div class="filter-group">
+          <strong>지목</strong>
+          <div id="filter-categories"></div>
+        </div>
+        <div class="filter-group">
+          <strong>소유자</strong>
+          <div id="filter-owners"></div>
+        </div>
+        <div class="filter-group">
+          <strong>베이스 지도</strong>
+          <label><input type="radio" name="basemap" value="satellite" checked /> 위성</label>
+          <label><input type="radio" name="basemap" value="base" /> 일반</label>
+          <label><input type="radio" name="basemap" value="osm" /> OSM</label>
+        </div>
+        <div class="filter-group">
+          <label><input type="checkbox" id="toggle-cadastral" checked /> 지적편집도 표시</label>
+          <label><input type="checkbox" id="toggle-labels" checked /> 지번 라벨</label>
+        </div>
+        <div class="filter-group" id="group-3d-only">
+          <strong>3D 전용</strong>
+          <label><input type="checkbox" id="toggle-google-3d" /> Google 실사 3D 건물</label>
+          <label><input type="checkbox" id="toggle-osm-buildings" /> OSM 박스 건물 (전역)</label>
+          <div style="display:flex;gap:4px;margin-top:6px;">
+            <input type="text" id="fly-address" placeholder="주소 → 이동 (예: 서울 강남구)" style="flex:1;min-width:0;padding:4px 6px;border:1px solid #ccc;border-radius:3px;font-size:12px;" />
+            <button id="fly-btn" style="padding:4px 10px;background:#1a237e;color:white;border:none;border-radius:3px;cursor:pointer;font-size:12px;">이동</button>
+          </div>
+        </div>
+        <div class="filter-group" id="group-parcel-style">
+          <strong>필지 스타일 (3D)</strong>
+          <div class="style-row">
+            <label>높이 <span id="style-height-val" class="style-val">8m</span></label>
+            <input type="range" id="style-height" min="0" max="10" step="0.5" />
+          </div>
+          <div class="style-row">
+            <label>투명도 <span id="style-alpha-val" class="style-val">55%</span></label>
+            <input type="range" id="style-alpha" min="0" max="1" step="0.05" />
+          </div>
+          <div class="style-row">
+            <label>외곽선 굵기 <span id="style-outline-width-val" class="style-val">2px</span></label>
+            <input type="range" id="style-outline-width" min="1" max="10" step="1" />
+          </div>
+          <label><input type="checkbox" id="style-fill" /> 면 채우기</label>
+          <label><input type="checkbox" id="style-outline" /> 외곽선 표시</label>
+          <div class="style-colors">
+            <div class="style-color-row"><span>전</span><input type="color" id="style-color-전" /></div>
+            <div class="style-color-row"><span>답</span><input type="color" id="style-color-답" /></div>
+            <div class="style-color-row"><span>임</span><input type="color" id="style-color-임" /></div>
+            <div class="style-color-row"><span>임야</span><input type="color" id="style-color-임야" /></div>
+            <div class="style-color-row"><span>대</span><input type="color" id="style-color-대" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>필지 목록 <span id="count">(0/34)</span></h3>
+        <div id="parcel-list"></div>
+      </div>
+    </aside>
+
+    <div id="map"></div>
+    <div id="cesium-container"></div>
+  </main>
+
+  <!-- 범례 -->
+  <div id="legend">
+    <div class="legend-item"><span class="legend-color" style="background:#f9a825"></span> 전</div>
+    <div class="legend-item"><span class="legend-color" style="background:#1976d2"></span> 답</div>
+    <div class="legend-item"><span class="legend-color" style="background:#00e676"></span> 임</div>
+    <div class="legend-item"><span class="legend-color" style="background:#e91e63"></span> 임야</div>
+    <div class="legend-item"><span class="legend-color" style="background:#ffeb3b"></span> 대</div>
+  </div>
+
+  <script src="config.js" onerror="console.warn('config.js 없음 — 모달로 키 입력')"></script>
+  <script src="parcels.js"></script>
+  <script src="projects.js"></script>
+  <script src="app.js"></script>
+  <script src="cesium-app.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
