@@ -9,7 +9,7 @@
 
 - **위치**: `C:\WORK\infra-docs\ai-shared-registry.md` (git repo: `C:\WORK\infra-docs`)
 - **최초 작성**: 2026-04-12
-- **마지막 업데이트**: 2026-04-15 (NPC 대화 권장 모델 `gemma3:12b` 추가 · TwinverseAI Office 멀티플레이어 피벗 반영)
+- **마지막 업데이트**: 2026-04-24 (LAN OpenClaw 기본 모델을 `openai-codex/gpt-5.5`로 전환 · Anthropic API provider 비활성화/키 제거)
 - **관리자**: Steven Lim
 
 ---
@@ -173,14 +173,14 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 > 두 인스턴스는 독립 (상태/세션/auth 공유 없음). DeskRPG 는 기존 Hostinger 유지, 신규 LAN 인스턴스는 Office NPC 전용.
 
 - **LAN 엔드포인트 (1순위, Office NPC 권장)**: `ws://192.168.219.117:18789` (twinverse-ai, host network)
-  - 백엔드 모델: Ollama (`ollama/qwen2.5:7b` 기본, tool-capable) — OAuth 불필요, 완전 오프라인 가능
-  - Ollama 미지원 모델: gemma3:12b/gemma4:26b (tools 미지원이라 Agent 용도엔 부적합, 단순 LLM 용만)
+  - 기본 에이전트 모델: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth 계열, Anthropic API 미사용)
+  - 무료/오프라인 폴백: Ollama `ollama/qwen2.5:7b` (tool-capable), 단순 대화는 `gemma3:12b`
 - **Hostinger 엔드포인트 (DeskRPG 전용)**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
   - Web UI (chat playground): `https://openclaw-apco.srv1557851.hstgr.cloud/`
   - 백엔드 모델: `openai-codex/gpt-5.4` (ChatGPT Plus OAuth, refresh 이슈 취약)
 - **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
 - **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
-- **지원 모델 예시**: `openai-codex/gpt-5.4`, `anthropic-claude-code/sonnet-4-6`, (그 외 OpenClaw 플러그인 모델)
+- **지원 모델 예시**: `openai-codex/gpt-5.5`, `openai-codex/gpt-5.4`, `claude-cli/claude-opus-4-6`, `ollama/qwen2.5:7b`
 - **세션**: `agent:{agentId}:{sessionName}` 키로 persistent
 - **환경변수 (표준)**:
   - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL
@@ -188,7 +188,8 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
     - DeskRPG: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
   - `OPENCLAW_TOKEN` — 게이트웨이 인증 토큰 (각 인스턴스 `/data/.openclaw/openclaw.json` 의 `gateway.auth.token`, Orbitron secrets 로만 보관)
   - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
-    - Office 권장: `ollama/qwen2.5:7b` (tool-capable)
+    - Office 권장: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth, Anthropic API 미사용)
+    - 비용 차단/오프라인 폴백: `ollama/qwen2.5:7b` (tool-capable)
     - DeskRPG: `openai-codex/gpt-5.4`
 - **참조 클라이언트**: `C:\WORK\TwinverseAI\deskrpg-master\src\lib\openclaw-gateway.js` (Node.js) — Office 백엔드에서 Python 으로 포팅 시 참조
 
@@ -208,7 +209,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 프로바이더 | 환경변수명 (표준) | 키 보관처 | 현재 사용 프로젝트 | 용도 | 단가(참고) |
 |----------|-------------------|----------|-------------------|------|-----------|
 | OpenAI | `OPENAI_API_KEY` | Orbitron secrets | SodamFN (이미지 폴백) | DALL-E 3 · GPT-4 | $0.04/이미지 |
-| Anthropic | `ANTHROPIC_API_KEY` | Orbitron secrets | (예정: 양 프로젝트) | Claude 3.5/4 | per-token |
+| Anthropic | `ANTHROPIC_API_KEY` | Orbitron secrets (값 보관 가능, OpenClaw LAN provider는 2026-04-24 비활성화) | SodamFN · 선택적 폴백만 | Claude 4.x API 폴백 (명시적 opt-in 전용) | per-token |
 | Replicate | `REPLICATE_API_TOKEN` | Orbitron secrets | SodamFN (이미지 폴백) | SDXL/Flux | ~$0.005/이미지 |
 | Cloudflare R2 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET_NAME` / `R2_PUBLIC_URL` | Orbitron secrets | SodamFN (이미지 저장) | 객체 스토리지 | — |
 | HuggingFace | `HUGGINGFACE_TOKEN` | (예정) | (예정) | 모델 다운로드 게이트 | 무료 |
