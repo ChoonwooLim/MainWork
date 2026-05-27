@@ -166,18 +166,35 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 
 > **WebSocket RPC 게이트웨이** — ChatGPT / Claude Code / Gemini 등 CLI 에이전트에 persistent session + 도구 사용 + 스트리밍 응답을 제공하는 통합 계층.
 >
-> **운영 중 인스턴스 2종** (2026-04-15 기준):
-> 1. **LAN (twinverse-ai, 신규)** — TwinverseAI Office Tier 2 NPC 전용. Ollama 백엔드로 운영 (무료·내부망).
-> 2. **Hostinger VPS (기존)** — DeskRPG (`tvdesk.twinverse.org`) AI 동료 시스템, ChatGPT Codex OAuth 로 운영.
+> **운영 토폴로지 — 메인 / 비상 보조** (2026-04-26 정정):
+> 1. **메인 ⭐ — LAN (twinverse-ai)**: 정상 운영의 모든 트래픽이 여기로. TwinverseAI Office Tier 2 NPC + DeskRPG 등 모든 OpenClaw 사용처의 1차 백엔드.
+> 2. **비상 보조 — Hostinger VPS**: LAN 장애·점검·외부망 격리 시에만 사용하는 failover. 외부망 노출이 필요한 DeskRPG 외부 접속 백업 경로로도 잔존.
 >
-> 두 인스턴스는 독립 (상태/세션/auth 공유 없음). DeskRPG 는 기존 Hostinger 유지, 신규 LAN 인스턴스는 Office NPC 전용.
+> 두 인스턴스는 상태/세션/auth 공유는 안 하지만 **운영상은 동등 peer 가 아닌 main/backup** 관계로 취급한다. 신규 라우팅·기본 환경변수는 LAN 우선.
 
-- **LAN 엔드포인트 (1순위, Office NPC 권장)**: `ws://192.168.219.117:18789` (twinverse-ai, host network)
+- **메인 LAN 엔드포인트**: `ws://192.168.219.117:18789` (twinverse-ai, host network)
+  - 도메인: `wss://openclaw.twinverse.org`
   - 기본 에이전트 모델: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth 계열, Anthropic API 미사용)
   - 무료/오프라인 폴백: Ollama `ollama/qwen2.5:7b` (tool-capable), 단순 대화는 `gemma3:12b`
-- **Hostinger 엔드포인트 (DeskRPG 전용)**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
+- **비상 보조 (Hostinger) 엔드포인트**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
   - Web UI (chat playground): `https://openclaw-apco.srv1557851.hstgr.cloud/`
   - 백엔드 모델: `openai-codex/gpt-5.4` (ChatGPT Plus OAuth, refresh 이슈 취약)
+  - 정상 운영에서는 트래픽 라우팅 대상 아님. LAN 응답 불가/외부망 필수 케이스에서만 사용.
+  - **인프라 (2026-04-26 Hostinger 패널 추출)**:
+    - 플랜: **KVM 2** (만료 2027-04-04, 자동 갱신 활성)
+    - OS: **Ubuntu 24.04 LTS**
+    - CPU: **2 코어** · RAM: **8 GB** · 디스크: **100 GB** (사용 8 GB / 8%)
+    - 대역폭: 8 TB/월 (사용 0.002 TB / 0.03%)
+    - 리전: **Malaysia · Kuala Lumpur**
+    - 호스트네임: `srv1557851.hstgr.cloud`
+    - 공인 IPv4: `187.127.100.19`
+    - SSH: `ssh root@187.127.100.19` (사용자 `root`, 비번/키는 Hostinger 패널)
+    - 컨테이너 토폴로지: **Traefik (`traefik-86sw`)** 리버스 프록시 → **`openclaw-apco`** OpenClaw 게이트웨이 (둘 다 `실행 중`, Hostinger Docker Manager)
+    - 게이트웨이 토큰 회수: Docker Manager → openclaw-apco 행 → "게이트웨이 토큰" 버튼
+    - 방화벽 규칙: **0개 (커스텀 규칙 없음)** — 기본 정책 사용. 외부망 노출 인바운드 정밀 제어 필요 시 보강 필요.
+    - 백업: 스냅샷 2개. 자동 일일 백업 미적용 (업그레이드 옵션 8,739원/월).
+    - 멀웨어 스캐너: 사용 중
+    - Hostinger AI 크레딧 (참고): nexos.ai 4.97 잔여 · Oxylabs 0 잔여 (OpenClaw 와는 별개)
 - **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
 - **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
 - **지원 모델 예시**: `openai-codex/gpt-5.5`, `openai-codex/gpt-5.4`, `claude-cli/claude-opus-4-6`, `ollama/qwen2.5:7b`
@@ -195,10 +212,11 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 
 #### 용도 매트릭스
 
-| 용도 | 프로젝트 | 인스턴스 | 에이전트 수 | 비고 |
-|------|---------|---------|------------|------|
-| NPC 동료 (업무 위임, 2D) | DeskRPG | Hostinger VPS | 채널별 n명 | ✅ 운영, ChatGPT Codex |
-| Tier 2 에이전트 NPC (3D) | TwinverseAI Office | LAN twinverse-ai | 슬롯당 최대 3명 | ✅ 운영, Ollama qwen2.5:7b |
+| 용도 | 프로젝트 | 1차 (메인) | 백업 | 비고 |
+|------|---------|-----------|------|------|
+| Tier 2 에이전트 NPC (3D) | TwinverseAI Office | LAN twinverse-ai ⭐ | Hostinger (비상시) | ✅ 운영, Ollama qwen2.5:7b 폴백 |
+| NPC 동료 (업무 위임, 2D) | DeskRPG | LAN twinverse-ai ⭐ | Hostinger (외부망 노출 필요 시) | ✅ 운영, ChatGPT Codex |
+| 외부망 외부 접속 chat playground | (관리/디버그) | Hostinger Web UI | — | 외부망 격리 환경에서의 백업 콘솔 |
 
 ---
 
