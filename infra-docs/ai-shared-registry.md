@@ -231,6 +231,8 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | Anthropic | `ANTHROPIC_API_KEY` | Orbitron secrets (값 보관 가능, OpenClaw LAN provider는 2026-04-24 비활성화) | SodamFN · 선택적 폴백만 | Claude 4.x API 폴백 (명시적 opt-in 전용) | per-token |
 | Replicate | `REPLICATE_API_TOKEN` | Orbitron secrets | SodamFN (이미지 폴백) | SDXL/Flux | ~$0.005/이미지 |
 | Cloudflare R2 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET_NAME` / `R2_PUBLIC_URL` | Orbitron secrets | SodamFN (이미지 저장) | 객체 스토리지 | — |
+| 네이버 CLOVA OCR | `CLOVA_OCR_INVOKE_URL` / `CLOVA_OCR_SECRET` | Orbitron 대시보드 env (SodamFN, 2026-07-28 주입) | SodamFN (영수증 텍스트 OCR) | General OCR — 영수증 날짜·합계 확정 (도메인 `sodam-receipt` #56374, General 플랜 + APIGW 자동 연동) | 월 기본요금 0원, 호출량 과금 |
+| Google Cloud Vision | `GOOGLE_VISION_API_KEY` | (미발급 — CLOVA 폴백용) | SodamFN (선택) | 텍스트 OCR 폴백 | 월 1,000건 무료 |
 | HuggingFace | `HUGGINGFACE_TOKEN` | (예정) | (예정) | 모델 다운로드 게이트 | 무료 |
 | ElevenLabs | `ELEVENLABS_API_KEY` | (예정) | (예정) | TTS 폴백 | per-char |
 | Stability AI | `STABILITY_API_KEY` | (예정) | (예정) | SD3 대체 | per-image |
@@ -327,6 +329,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-04-12 | **레지스트리 크로스-프로젝트 반영**: C:\WORK 내 모든 AI 소비 프로젝트(Artifex.AI · ArtifexPro · AutoShorts_DT · TwinVerse · artifex.ai-studio-pro · proposal-agent)의 CLAUDE.md에 이 레지스트리 포인터 추가 — 모든 프로젝트가 동일한 twinverse-ai/GPU/AI 규칙을 참조. | 전 프로젝트 | Steven + Claude |
 | 2026-07-28 | **TwinverseFolder 공유 마운트 복구 (twinverse-ai)**. 09:59 재부팅으로 CIFS 재인증 → 실패(`STATUS_LOGON_FAILURE`). 원인: twinverse-ai 의 `/etc/samba/twinverse.cred` 는 4/14자, 서버(.101) 삼바 `twinverse` 비번은 4/27 변경 — **삼바 비번은 리눅스 로그인 비번과 별개 DB(tdbsam)** 라 "같은 비번"이 아니다. 조치: `.101` smb.conf `[TwinverseFolder]` 의 `valid users = twinverse` → `twinverse stevenlim` (백업 `smb.conf.bak-20260728`), twinverse-ai 는 `stevenlim` 계정으로 마운트. 작업PC(.100) Z: 연결(`twinverse`)은 무영향. | 전 프로젝트 | Steven + Claude |
 | 2026-07-28 | **포트 8110 예약 — semhana-chromium 상주 브라우저 세션**. 사장님이 1회 로그인하면 에이전트가 배민 쿠키를 셈하나 백엔드에 자동 주입 (수동 쿠키 붙여넣기 제거). CDP 9222 는 컨테이너 내부 전용 — 외부 미노출. 배포: `~/semhana-browser` docker compose (chromium + agent). | SodamFN | Steven + Claude |
+| 2026-07-28 | **네이버 CLOVA OCR 도입 (SodamFN 영수증)**. NCP 도메인 `sodam-receipt`(#56374, General 플랜·한국어) 생성 + API Gateway 자동 연동. 키는 Orbitron 대시보드 env(projects.env_vars, id 13)에 암호화 주입 후 재배포 — 컨테이너 내 `ocr_text()` E2E 검증 완료. 비전 LLM 날짜 자릿수 오독 대응 하이브리드 추출의 텍스트 OCR 단계 활성화. | SodamFN | Steven + Claude |
 | 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
 
 ---
