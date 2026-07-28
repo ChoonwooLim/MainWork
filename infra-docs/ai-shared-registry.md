@@ -51,6 +51,7 @@
 | 8300 | ComfyUI | 📝 예약 | 공용 | LAN |
 | 8400 | SDXL / Stable Diffusion WebUI | 📝 예약 | 공용 | LAN |
 | 8500 | Embedding server (bge/e5) | 📝 예약 | 공용 | LAN |
+| 8110 | **semhana-chromium** (상주 브라우저 세션 — 배민 정산 무인수집, KasmVNC 웹 UI) | ✅ 운영 (docker compose) | SodamFN 전용 | LAN |
 | 18789 | **OpenClaw Gateway** (WebSocket RPC, CLI 에이전트 브로커) | ✅ 운영 (LAN twinverse-ai / 공용 openclaw-apco.srv1557851.hstgr.cloud) | 공용 | LAN + Public |
 
 범례: ✅ 운영 · 🔄 이관 중 · 📝 예약(미구축) · ❌ 폐기
@@ -324,6 +325,8 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-04-12 | **Flux A/B 벤치마크 + 코드 고정**: sequential_cpu_offload(11.5s) vs model_cpu_offload(22s) vs native(OOM) 실측. RTX 3090 24GB에서도 sequential이 최적임을 확인, `main.py`에 주석으로 박제(3.2.2). | SodamFN · 이후 Flux 사용할 모든 프로젝트 | Steven + Claude |
 | 2026-04-12 | **twinverse-ai 하드웨어 안정성 경고 기록** (3.2.3): 연속 Flux 생성 중 전압 스파이크 추정 리부팅. HW 미수리 상태 — 운영 가이드(쿨다운·폴백 상시 활성·전력 제한) 추가. | 전 프로젝트 | Steven + Claude |
 | 2026-04-12 | **레지스트리 크로스-프로젝트 반영**: C:\WORK 내 모든 AI 소비 프로젝트(Artifex.AI · ArtifexPro · AutoShorts_DT · TwinVerse · artifex.ai-studio-pro · proposal-agent)의 CLAUDE.md에 이 레지스트리 포인터 추가 — 모든 프로젝트가 동일한 twinverse-ai/GPU/AI 규칙을 참조. | 전 프로젝트 | Steven + Claude |
+| 2026-07-28 | **포트 8110 예약 — semhana-chromium 상주 브라우저 세션**. 사장님이 1회 로그인하면 에이전트가 배민 쿠키를 셈하나 백엔드에 자동 주입 (수동 쿠키 붙여넣기 제거). CDP 9222 는 컨테이너 내부 전용 — 외부 미노출. 배포: `~/semhana-browser` docker compose (chromium + agent). | SodamFN | Steven + Claude |
+| 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
 
 ---
 
