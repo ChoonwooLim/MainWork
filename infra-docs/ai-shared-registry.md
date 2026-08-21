@@ -9,7 +9,7 @@
 
 - **위치**: `C:\WORK\infra-docs\ai-shared-registry.md` (git repo: `C:\WORK\infra-docs`)
 - **최초 작성**: 2026-04-12
-- **마지막 업데이트**: 2026-04-24 (LAN OpenClaw 기본 모델을 `openai-codex/gpt-5.5`로 전환 · Anthropic API provider 비활성화/키 제거)
+- **마지막 업데이트**: 2026-08-11 (`live-interpretation` 운영 배포·서버 간 E2E 검증 완료)
 - **관리자**: Steven Lim
 
 ---
@@ -47,7 +47,8 @@
 | 8100 | **ai-image-service** (Flux.1 + Real-ESRGAN + rembg + LaMa) | ✅ 운영 (systemd) | 공용 | LAN |
 | 8101 | TTS (Edge-TTS / XTTS v2) | 📝 예약 | 공용 | LAN |
 | 8102 | Music (ACE-Step) | 📝 예약 | 공용 | LAN |
-| 8200 | Whisper (STT) | 📝 예약 | 공용 | LAN |
+| 8200 | **wan-video-service** (Wan 2.2 video generation) | ✅ 운영 (systemd) | 공용 | LAN |
+| 8201 | **live-interpretation** (faster-whisper STT + Ollama translation) | ✅ 운영 (systemd, `/ready` 200) | steven-site 통역 pilot | Orbitron(`192.168.219.101`)만 + Bearer 인증 |
 | 8300 | ComfyUI | 📝 예약 | 공용 | LAN |
 | 8400 | SDXL / Stable Diffusion WebUI | 📝 예약 | 공용 | LAN |
 | 8500 | Embedding server (bge/e5) | 📝 예약 | 공용 | LAN |
@@ -160,8 +161,21 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 ### 3.3 TTS (예약, 미구축)
 - Edge-TTS (로컬) + XTTS v2 후보
 
-### 3.4 STT (예약, 미구축)
-- Whisper large-v3 / faster-whisper
+### 3.4 STT · 실시간 통역 @ twinverse-ai:8201
+
+- **엔드포인트**: `http://192.168.219.117:8201`
+- **서비스**: `live-interpretation.service` (systemd, 단일 worker)
+- **인증**: 서버 간 `Authorization: Bearer ${INTERPRETATION_SERVICE_TOKEN}`. 브라우저에 토큰을 전달하지 않는다.
+- **STT**: faster-whisper `large-v3-turbo`(운영 env로 model/compute type 조정 가능), PCM16 16 kHz mono WebSocket ingest
+- **번역**: LAN Ollama `qwen2.5:7b`, ko/ja/en strict JSON. 도구 사용이 열린 OpenClaw 지니·로이 session에 회의 발화를 보내지 않는다.
+- **보관**: raw audio·원문·번역문 미영속, 일반 log/APM에 본문 금지
+- **운영 빌드**: TwinverseAI `origin/main`의 `2108870b5ef9c0142692076b741670b4ce5a54ac`
+- **실행 격리**: 전용 OS 사용자 `live-interpretation`, systemd `active`, `/ready` HTTP 200
+- **접근 범위**: `192.168.219.117` LAN bind이지만 UFW는 Orbitron `192.168.219.101`의 TCP 8201만 허용. 외부 직접 노출 금지.
+- **검증**: Orbitron 호스트 연결 성공. 합성 ko PCM과 3초 zero tail로 aggregate `source.final`/ko·ja·en `translation.final`을 확인했다.
+- **사이트 E2E**: `steven.twinverse.org`의 인증·same-origin WebSocket 경로에서 최종 자막 수신과 `stop` 후 room/upstream 정리를 확인했다. 검증 로그에는 토큰·발화 본문을 남기지 않았다.
+
+> 2026-08-10 실측에서 기존 예약 포트 `8200`은 이미 `wan-video-service`가 사용 중이었다. 운영 서비스를 중단·이동하지 않고 실제 빈 포트 `8201`을 STT/통역에 배정했다.
 
 ### 3.5 OpenClaw Gateway (CLI 에이전트 브로커)
 
@@ -253,7 +267,8 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | `OLLAMA_URL` | 로컬 LLM 호스트 | `http://192.168.219.117:11434` |
 | `TTS_SERVER_URL` | TTS 호스트 (예약) | `http://192.168.219.117:8101` |
 | `MUSIC_SERVER_URL` | 음악 생성 호스트 (예약) | `http://192.168.219.117:8102` |
-| `WHISPER_URL` | STT 호스트 (예약) | `http://192.168.219.117:8200` |
+| `WHISPER_URL` | STT·실시간 통역 호스트 | `http://192.168.219.117:8201` |
+| `INTERPRETATION_SERVICE_TOKEN` | steven-site → live-interpretation 서버 간 Bearer 자격증명 | (secrets) |
 | `COMFYUI_URL` | ComfyUI 호스트 (예약) | `http://192.168.219.117:8300` |
 | `OPENAI_API_KEY` | OpenAI 키 | (secrets) |
 | `ANTHROPIC_API_KEY` | Claude 키 | (secrets) |
@@ -291,9 +306,9 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 ② ElevenLabs                                ← 프리미엄
 ```
 
-### 6.4 STT (예정)
+### 6.4 STT · 통역
 ```
-① twinverse-ai Whisper (:8200)             ← 무료
+① twinverse-ai live-interpretation (:8201) ← 무료, Whisper + Ollama
 ② OpenAI Whisper API                        ← 폴백
 ```
 
@@ -330,6 +345,8 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-07-28 | **TwinverseFolder 공유 마운트 복구 (twinverse-ai)**. 09:59 재부팅으로 CIFS 재인증 → 실패(`STATUS_LOGON_FAILURE`). 원인: twinverse-ai 의 `/etc/samba/twinverse.cred` 는 4/14자, 서버(.101) 삼바 `twinverse` 비번은 4/27 변경 — **삼바 비번은 리눅스 로그인 비번과 별개 DB(tdbsam)** 라 "같은 비번"이 아니다. 조치: `.101` smb.conf `[TwinverseFolder]` 의 `valid users = twinverse` → `twinverse stevenlim` (백업 `smb.conf.bak-20260728`), twinverse-ai 는 `stevenlim` 계정으로 마운트. 작업PC(.100) Z: 연결(`twinverse`)은 무영향. | 전 프로젝트 | Steven + Claude |
 | 2026-07-28 | **포트 8110 예약 — semhana-chromium 상주 브라우저 세션**. 사장님이 1회 로그인하면 에이전트가 배민 쿠키를 셈하나 백엔드에 자동 주입 (수동 쿠키 붙여넣기 제거). CDP 9222 는 컨테이너 내부 전용 — 외부 미노출. 배포: `~/semhana-browser` docker compose (chromium + agent). | SodamFN | Steven + Claude |
 | 2026-07-28 | **네이버 CLOVA OCR 도입 (SodamFN 영수증)**. NCP 도메인 `sodam-receipt`(#56374, General 플랜·한국어) 생성 + API Gateway 자동 연동. 키는 Orbitron 대시보드 env(projects.env_vars, id 13)에 암호화 주입 후 재배포 — 컨테이너 내 `ocr_text()` E2E 검증 완료. 비전 LLM 날짜 자릿수 오독 대응 하이브리드 추출의 텍스트 OCR 단계 활성화. | SodamFN | Steven + Claude |
+| 2026-08-10 | **steven-site 실시간 통역 리소스 배정**. 실서버 실측으로 `8200`의 wan-video-service 운영 상태를 드리프에서 복구하고, 빈 포트 `8201`을 faster-whisper + Ollama 통역 서비스에 배정. `WHISPER_URL`을 `:8201`로 갱신하고 서버 간 `INTERPRETATION_SERVICE_TOKEN` 계약을 추가. | steven-site · TwinverseAI | Steven + Codex |
+| 2026-08-11 | **steven-site 실시간 통역 운영 검증 완료**. 전용 systemd 사용자와 Orbitron 단일 소스 UFW 규칙으로 `8201`을 운영 전환하고, worker ready·Orbitron 연결·합성 ko PCM aggregate ko/ja/en final·사이트 same-origin WebSocket 및 stop 정리를 E2E 검증. | steven-site · TwinverseAI | Steven + Codex |
 | 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
 
 ---
