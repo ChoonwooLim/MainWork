@@ -44,9 +44,12 @@
 
 **Dependencies:** Plan 1
 
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-messaging-media-consent-implementation.md`
+
 **Delivers:**
 
 - Mutual-consent relationship state machine
+- Profile-based chat request with greeting/purpose and no conversation before acceptance
 - 1:1 text messaging, WebSocket presence, delivery/read receipts
 - Upload reservation, malware scan adapter, object-store policy, image/video/document metadata
 - Call session authorization and managed WebRTC provider abstraction
@@ -58,6 +61,8 @@
 ## Plan 3 — Translation Orchestrator and BYOK
 
 **Dependencies:** Plans 1 and 2
+
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-translation-byok-implementation.md`
 
 **Delivers:**
 
@@ -72,12 +77,17 @@
 
 ## Plan 4 — Friends, Dating, Interests, and Community
 
-**Dependencies:** Plans 1 and 2
+**Dependencies:** Plans 1, 2, and 3
+
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-social-matching-community-implementation.md`
 
 **Delivers:**
 
 - Three-level interest taxonomy and localized labels
 - Separate Friends and Dating profiles
+- Surface-separated image/video profile showcases
+- Equal search and shorts discovery with captions, visibility, and chat requests
+- Public-content review port with a local/test-only deterministic adapter; Plan 5 supplies production moderation
 - Explainable recommendation reasons and exclusion rules
 - Mutual acceptance, rejection, block, and no-repeat guarantees
 - Interest communities, rooms, events, and copyright-safe watch-party model
@@ -89,9 +99,12 @@
 
 **Dependencies:** Plans 1, 2, and 4
 
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-trust-safety-operations-implementation.md`
+
 **Delivers:**
 
 - Unified report taxonomy and two-action report UX
+- Public showcase image/video/caption/OCR/metadata moderation and immediate search/shorts removal
 - Risk events, rate limits, re-registration defenses, scam/contact warnings
 - Text/image/file moderation provider interfaces and quarantine
 - Case management, evidence retention, appeal, restoration, and audit log
@@ -103,6 +116,8 @@
 ## Plan 6 — Special Membership and Managed OpenClaw
 
 **Dependencies:** Plans 2, 3, and 5
+
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-special-openclaw-implementation.md`
 
 **Delivers:**
 
@@ -119,9 +134,12 @@
 
 **Dependencies:** Plans 1, 2, 3, and 5
 
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-opportunities-fiat-implementation.md`
+
 **Delivers:**
 
 - Separate work profile, portfolio, listings, applications, and interviews
+- Work-only showcase with Opportunities search/shorts and purpose-bound inquiry
 - Local Buddy vs licensed Professional Guide distinction
 - Casting required fields and prohibited-listing rules
 - Contract scope, milestone, IP, cancellation, and evidence model
@@ -133,6 +151,8 @@
 ## Plan 8 — Globalization, Web3, and Partial Self-Hosting
 
 **Dependencies:** Plans 3, 5, 6, and 7
+
+**Plan file:** `docs/superpowers/plans/2026-08-21-chingume-globalization-web3-selfhosting-implementation.md`
 
 **Delivers:**
 
@@ -156,6 +176,30 @@
 | Global v1 | 1–8 globalization slice | 25-language capability reporting and country gates |
 | Expansion | Plan 8 Web3/self-host slices | Stablecoin service settlement and partial owned infrastructure |
 
-## Planning Order
+## Master Spec Coverage
 
-Write and approve each detailed plan immediately before its implementation. This preserves exact file paths and interfaces created by prior plans and prevents later plans from inventing structures that no longer match the repository.
+| Master spec sections | Primary implementation plans |
+|---|---|
+| 1–4 product principles, products, users | Plans 1, 4, 7 |
+| 5 interests | Plan 4 |
+| 6 core journeys | Plans 1–7 |
+| 7 realtime/media translation and BYOK/Special | Plans 3 and 6 |
+| 8 communications and media | Plans 2 and 3 |
+| 9 matching, profile showcase, equal search/shorts, communities, events | Plans 2, 3, 4, and 5 |
+| 10 Opportunities trust and transaction design | Plans 5 and 7 |
+| 11 identity, safety, reports, retention | Plans 1, 2, and 5 |
+| 12 memberships and revenue | Plans 6 and 7 |
+| 13 Web3 wallet and stablecoin settlement | Plan 8 |
+| 14 architecture and provider replacement | Plans 1–3, 6, and 8 |
+| 15 quality, availability, security, recovery | Acceptance gates in Plans 1–8 |
+| 16 languages and countries | Plans 3 and 8 |
+| 17 roadmap and budget | This program roadmap and release gates |
+| 18 organization | Staffing prerequisites attached to release gates and operations runbooks |
+| 19 metrics | Quality, safety, entitlement, marketplace, and global release tasks in Plans 3, 5–8 |
+| 20 risks | Provider failure, safety red-team, store/payment separation, country gates, and rollback tasks in Plans 2–8 |
+| 21 verification | Unit, contract, integration, language, performance, security, red-team, and recovery tasks across Plans 1–8 |
+| 22 global v1 completion | Plan acceptance gates plus Plan 8 global release manifest |
+
+## Planning and Revalidation Order
+
+The eight detailed plans are baselined before coding so scope, dependencies, budgets, and architecture can be reviewed as one program. Immediately before implementing each plan, compare its assumed files and interfaces with the code produced by earlier plans; record any required path/signature adjustment in that plan before execution. This preserves a complete program view without allowing later execution to rely on stale contracts.
