@@ -9,7 +9,7 @@
 
 - **위치**: `C:\WORK\infra-docs\ai-shared-registry.md` (git repo: `C:\WORK\infra-docs`)
 - **최초 작성**: 2026-04-12
-- **마지막 업데이트**: 2026-08-11 (`live-interpretation` 운영 배포·서버 간 E2E 검증 완료)
+- **마지막 업데이트**: 2026-08-29 (알리고 SMS 변수 등록 — SUIT 가입 OTP, 값 미주입)
 - **관리자**: Steven Lim
 
 ---
@@ -246,6 +246,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | Replicate | `REPLICATE_API_TOKEN` | Orbitron secrets | SodamFN (이미지 폴백) | SDXL/Flux | ~$0.005/이미지 |
 | Cloudflare R2 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET_NAME` / `R2_PUBLIC_URL` | Orbitron secrets | SodamFN (이미지 저장) | 객체 스토리지 | — |
 | 네이버 CLOVA OCR | `CLOVA_OCR_INVOKE_URL` / `CLOVA_OCR_SECRET` | Orbitron 대시보드 env (SodamFN, 2026-07-28 주입) | SodamFN (영수증 텍스트 OCR) | General OCR — 영수증 날짜·합계 확정 (도메인 `sodam-receipt` #56374, General 플랜 + APIGW 자동 연동) | 월 기본요금 0원, 호출량 과금 |
+| 알리고(Aligo) SMS | `SMS_PROVIDER` / `ALIGO_API_KEY` / `ALIGO_USER_ID` / `ALIGO_SENDER` | Orbitron 대시보드 env (SUIT) — **미주입** | SUIT (가입 휴대폰 OTP) | `https://apis.aligo.in/send/` 문자 발송. `SMS_PROVIDER=log`(기본)면 실제 전송 없이 로그만, `aligo`면 실제 발송. `ALIGO_SENDER`는 알리고에 사전 등록된 발신번호여야 함 | 건당 과금 |
 | Google Cloud Vision | `GOOGLE_VISION_API_KEY` | (미발급 — CLOVA 폴백용) | SodamFN (선택) | 텍스트 OCR 폴백 | 월 1,000건 무료 |
 | HuggingFace | `HUGGINGFACE_TOKEN` | (예정) | (예정) | 모델 다운로드 게이트 | 무료 |
 | ElevenLabs | `ELEVENLABS_API_KEY` | (예정) | (예정) | TTS 폴백 | per-char |
@@ -346,6 +347,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-07-28 | **포트 8110 예약 — semhana-chromium 상주 브라우저 세션**. 사장님이 1회 로그인하면 에이전트가 배민 쿠키를 셈하나 백엔드에 자동 주입 (수동 쿠키 붙여넣기 제거). CDP 9222 는 컨테이너 내부 전용 — 외부 미노출. 배포: `~/semhana-browser` docker compose (chromium + agent). | SodamFN | Steven + Claude |
 | 2026-07-28 | **네이버 CLOVA OCR 도입 (SodamFN 영수증)**. NCP 도메인 `sodam-receipt`(#56374, General 플랜·한국어) 생성 + API Gateway 자동 연동. 키는 Orbitron 대시보드 env(projects.env_vars, id 13)에 암호화 주입 후 재배포 — 컨테이너 내 `ocr_text()` E2E 검증 완료. 비전 LLM 날짜 자릿수 오독 대응 하이브리드 추출의 텍스트 OCR 단계 활성화. | SodamFN | Steven + Claude |
 | 2026-08-10 | **steven-site 실시간 통역 리소스 배정**. 실서버 실측으로 `8200`의 wan-video-service 운영 상태를 드리프에서 복구하고, 빈 포트 `8201`을 faster-whisper + Ollama 통역 서비스에 배정. `WHISPER_URL`을 `:8201`로 갱신하고 서버 간 `INTERPRETATION_SERVICE_TOKEN` 계약을 추가. | steven-site · TwinverseAI | Steven + Codex |
+| 2026-08-29 | **알리고 SMS 등록 (SUIT 가입 OTP)**. `SMS_PROVIDER`/`ALIGO_API_KEY`/`ALIGO_USER_ID`/`ALIGO_SENDER` 4개 변수는 `SUIT/Orbitron.yaml`에 `sync: false`로 이미 선언돼 있고 `.env.example`에도 문서화됨. 현재 값 미주입 상태라 `log` 모드(콘솔 출력)로 동작 — 대시보드 env 주입 후 컨테이너 재기동하면 기동 로그에 `[sms] provider=aligo status=ready`가 찍힌다. | SUIT | Steven + Claude |
 | 2026-08-11 | **steven-site 실시간 통역 운영 검증 완료**. 전용 systemd 사용자와 Orbitron 단일 소스 UFW 규칙으로 `8201`을 운영 전환하고, worker ready·Orbitron 연결·합성 ko PCM aggregate ko/ja/en final·사이트 same-origin WebSocket 및 stop 정리를 E2E 검증. | steven-site · TwinverseAI | Steven + Codex |
 | 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
 
