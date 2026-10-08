@@ -218,6 +218,9 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
   - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL
     - Office: `ws://192.168.219.117:18789` (LAN, 권장)
     - DeskRPG: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
+  - `OPENCLAW_GATEWAY_URL` — OpenAI 호환 HTTP 베이스 URL (`POST /v1/chat/completions`, 모델 ID `openclaw/<agentId>`)
+    - Office: `http://192.168.219.117:18790` (socat 프록시 → 127.0.0.1:18789, LAN 192.168.219.0/24 전용). 상세: llm-wiki `40-Tools/OpenClaw.md` §OpenAI-Compatible HTTP API
+    - 사용처: SodamFN 영수증 비전, ContentsHub 자막 번역 (2026-10-09)
   - `OPENCLAW_TOKEN` — 게이트웨이 인증 토큰 (각 인스턴스 `/data/.openclaw/openclaw.json` 의 `gateway.auth.token`, Orbitron secrets 로만 보관)
   - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
     - Office 권장: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth, Anthropic API 미사용)
@@ -232,6 +235,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | Tier 2 에이전트 NPC (3D) | TwinverseAI Office | LAN twinverse-ai ⭐ | Hostinger (비상시) | ✅ 운영, Ollama qwen2.5:7b 폴백 |
 | NPC 동료 (업무 위임, 2D) | DeskRPG | LAN twinverse-ai ⭐ | Hostinger (외부망 노출 필요 시) | ✅ 운영, ChatGPT Codex |
 | 외부망 외부 접속 chat playground | (관리/디버그) | Hostinger Web UI | — | 외부망 격리 환경에서의 백업 콘솔 |
+| 자막 번역 (한·영·일·중 간체/번체) | ContentsHub (kcontent-hub) | LAN twinverse-ai ⭐ — 에이전트 `codex-pro`, OpenAI-compat HTTP | OpenAI GPT-4o (`TRANSLATE_PROVIDER=openai` 또는 OpenClaw 실패 시 자동 폴백, UI 에 실제 엔진 표시) | 2026-10-09 연동. env: `TRANSLATE_PROVIDER` / `OPENCLAW_GATEWAY_URL` / `OPENCLAW_TOKEN` / `OPENCLAW_AGENT_ID` / `TRANSLATE_FALLBACK`. 비동기 잡(202+폴링)으로 Orbitron 프록시 60초 한도 회피 |
 
 ---
 
