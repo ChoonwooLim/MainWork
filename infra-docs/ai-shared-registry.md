@@ -169,8 +169,9 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 - **STT**: faster-whisper `large-v3-turbo`(운영 env로 model/compute type 조정 가능), PCM16 16 kHz mono WebSocket ingest
 - **번역**: LAN Ollama `qwen2.5:7b`, ko/ja/en strict JSON. 도구 사용이 열린 OpenClaw 지니·로이 session에 회의 발화를 보내지 않는다.
 - **보관**: raw audio·원문·번역문 미영속, 일반 log/APM에 본문 금지
-- **운영 빌드**: TwinverseAI `origin/main`의 `2108870b5ef9c0142692076b741670b4ce5a54ac`
+- **운영 빌드**: TwinverseAI `origin/main`의 `ac216a466cc2a294ef72458655717bf10483a754` (PR #4, 2026-11-12 배포)
 - **실행 격리**: 전용 OS 사용자 `live-interpretation`, systemd `active`, `/ready` HTTP 200
+- **기동 멈춤 자동 복구**: `ExecStartPost`의 `app.wait_ready`가 `/ready`를 폴링, `INTERPRETATION_STARTUP_TIMEOUT_SECONDS`(기본 540초) 안에 준비 안 되면 기동 실패 처리 → systemd가 멈춘 프로세스를 종료하고 `Restart=on-failure`로 재기동. 워밍업 중 상태는 `activating`. `systemctl is-active`가 `active`인데 8201이 닫혀 있으면 이 게이트가 없는 옛 unit이다.
 - **접근 범위**: `192.168.219.117` LAN bind이지만 UFW는 Orbitron `192.168.219.101`의 TCP 8201만 허용. 외부 직접 노출 금지.
 - **검증**: Orbitron 호스트 연결 성공. 합성 ko PCM과 3초 zero tail로 aggregate `source.final`/ko·ja·en `translation.final`을 확인했다.
 - **사이트 E2E**: `steven.twinverse.org`의 인증·same-origin WebSocket 경로에서 최종 자막 수신과 `stop` 후 room/upstream 정리를 확인했다. 검증 로그에는 토큰·발화 본문을 남기지 않았다.
@@ -360,6 +361,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-08-11 | **steven-site 실시간 통역 운영 검증 완료**. 전용 systemd 사용자와 Orbitron 단일 소스 UFW 규칙으로 `8201`을 운영 전환하고, worker ready·Orbitron 연결·합성 ko PCM aggregate ko/ja/en final·사이트 same-origin WebSocket 및 stop 정리를 E2E 검증. | steven-site · TwinverseAI | Steven + Codex |
 | 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
 | 2026-11-12 | **OpenClaw LAN 모델 전면 교체**. `openclaw`: 로이(`main`)·기본값 `gpt-5.6-sol` → `openai-codex/gpt-6-astra`, `codex-pro` → `openai-codex/gpt-6.1-sol`, 지니(`myjini`) `claude-opus-5` → `claude-cli/claude-fable-5-2`. `openclaw-igos`(rio·ivy·기본값) · `openclaw-suit`(suit-jini·suit-roy·기본값) 전부 `claude-cli/claude-fable-5-2`. 3개 컨테이너 Claude Code 2.1.114 → 2.1.322 (Fable 5.2 는 ≥2.1.290 필요). 전부 핫리로드 반영(재시작 없음), 에이전트별 `--json` 핑으로 실제 실행 모델 확인. 롤백: 각 컨테이너 `/data/.openclaw/openclaw.json.bak-modelupgrade-20261112`. Ollama NPC·bench 에이전트와 Hostinger(비상 보조, `gpt-5.4`)는 미변경. | TwinverseAI · ContentsHub · IGOS · SUIT · DeskRPG | Steven + Claude |
+| 2026-11-12 | **live-interpretation(8201) 기동 멈춤 장애 복구 + 재발 방지**. NVIDIA 드라이버 부재로 87회 크래시 루프 후, 드라이버 복구 중 시작한 88번째 기동이 04:12부터 `Waiting for application startup`에서 1시간 넘게 멈춤 — systemd는 `active/running`인데 8201 미바인드라 steven-site 자막 전면 불통. 수동 재시작으로 복구 후, `ExecStartPost` 준비 게이트(`app.wait_ready`, 540초) 배포로 멈춤도 실패로 처리해 자동 재기동. 운영 빌드 `2108870` → `ac216a4`(PR #4). unit 백업: twinverse-ai `/root/live-interpretation.service.bak-20261112`. 참고: steven-site의 평범한 GET `/ws/*` 404는 설계상 정상(catch-all이 `ws/`를 404로 막음)이라 라우트 판정 근거가 아니다. | steven-site · TwinverseAI | Steven + Claude |
 
 ---
 
