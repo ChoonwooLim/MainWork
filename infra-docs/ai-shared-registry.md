@@ -189,8 +189,13 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 
 - **메인 LAN 엔드포인트**: `ws://192.168.219.117:18789` (twinverse-ai, host network)
   - 도메인: `wss://openclaw.twinverse.org`
-  - 기본 에이전트 모델: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth 계열, Anthropic API 미사용)
+  - 기본 에이전트 모델 (2026-11-12 교체): `openai-codex/gpt-6-astra` — 로이(`main`)·`agents.defaults` (ChatGPT/Codex OAuth 계열, Anthropic API 미사용)
+    - 대량 작업용 `codex-pro` (ContentsHub 자막 번역): `openai-codex/gpt-6.1-sol` — 주간 한도 보호 목적의 의도적 분리
+    - Claude 계열 (지니 `myjini` 등): `claude-cli/claude-fable-5-2` (Claude 구독 CLI). **컨테이너 내 Claude Code ≥ 2.1.290 필요** — 현재 2.1.322 (`HOME=/data npm i -g @anthropic-ai/claude-code@<ver>`, `-u node`)
+    - 계정에서 쓸 수 있는 Codex 모델 목록은 작업PC `~/.codex/models_cache.json` 이 가장 정확 (OpenClaw 카탈로그는 2026.4.12 기준이라 GPT-6 계열 미등재 — ID 직접 지정으로 동작)
+  - 같은 호스트의 별도 인스턴스 `openclaw-igos` · `openclaw-suit` (bridge network, 각자 볼륨): 전 에이전트 `claude-cli/claude-fable-5-2` (2026-11-12). igos 의 Codex OAuth 는 만료 상태라 `ivy`·`main` 도 Claude CLI 로 전환함
   - 무료/오프라인 폴백: Ollama `ollama/qwen2.5:7b` (tool-capable), 단순 대화는 `gemma3:12b`
+    - 로컬 NPC 에이전트는 `qwen2.5:7b` 유지 (2026-11-12 결정): `qwen3.6:27b` 실측 시 VRAM 23.9/24.5GB 독점 + 한 문장 응답 32~63초 → 영상·이미지·통역 서비스와 공존 불가
 - **비상 보조 (Hostinger) 엔드포인트**: `wss://openclaw-apco.srv1557851.hstgr.cloud/openclaw`
   - Web UI (chat playground): `https://openclaw-apco.srv1557851.hstgr.cloud/`
   - 백엔드 모델: `openai-codex/gpt-5.4` (ChatGPT Plus OAuth, refresh 이슈 취약)
@@ -212,7 +217,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
     - Hostinger AI 크레딧 (참고): nexos.ai 4.97 잔여 · Oxylabs 0 잔여 (OpenClaw 와는 별개)
 - **프로토콜**: 자체 RPC (v1~v3) — `agents.list`, `agents.create`, `chat.send` (streaming delta), `chat.abort`
 - **인증**: pairing flow + `OPENCLAW_TOKEN` (device identity, Ed25519 서명)
-- **지원 모델 예시**: `openai-codex/gpt-5.5`, `openai-codex/gpt-5.4`, `claude-cli/claude-opus-4-6`, `ollama/qwen2.5:7b`
+- **지원 모델 예시**: `openai-codex/gpt-6-astra`, `openai-codex/gpt-6.1-sol`, `claude-cli/claude-fable-5-2`, `claude-cli/claude-opus-5-5`, `ollama/qwen2.5:7b`
 - **세션**: `agent:{agentId}:{sessionName}` 키로 persistent
 - **환경변수 (표준)**:
   - `OPENCLAW_WS_URL` — 게이트웨이 WebSocket URL
@@ -223,7 +228,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
     - 사용처: SodamFN 영수증 비전, ContentsHub 자막 번역 (2026-10-09)
   - `OPENCLAW_TOKEN` — 게이트웨이 인증 토큰 (각 인스턴스 `/data/.openclaw/openclaw.json` 의 `gateway.auth.token`, Orbitron secrets 로만 보관)
   - `OPENCLAW_MODEL` — 기본 에이전트 모델 (프로젝트별 override 가능)
-    - Office 권장: `openai-codex/gpt-5.5` (ChatGPT/Codex OAuth, Anthropic API 미사용)
+    - Office 권장: `openai-codex/gpt-6-astra` (ChatGPT/Codex OAuth, Anthropic API 미사용)
     - 비용 차단/오프라인 폴백: `ollama/qwen2.5:7b` (tool-capable)
     - DeskRPG: `openai-codex/gpt-5.4`
 - **참조 클라이언트**: `C:\WORK\TwinverseAI\deskrpg-master\src\lib\openclaw-gateway.js` (Node.js) — Office 백엔드에서 Python 으로 포팅 시 참조
@@ -354,6 +359,7 @@ A/B 결과는 `main.py` 주석에도 박제되어 있음. **코드 건드릴 때
 | 2026-08-29 | **알리고 SMS 등록 (SUIT 가입 OTP)**. `SMS_PROVIDER`/`ALIGO_API_KEY`/`ALIGO_USER_ID`/`ALIGO_SENDER` 4개 변수는 `SUIT/Orbitron.yaml`에 `sync: false`로 이미 선언돼 있고 `.env.example`에도 문서화됨. 현재 값 미주입 상태라 `log` 모드(콘솔 출력)로 동작 — 대시보드 env 주입 후 컨테이너 재기동하면 기동 로그에 `[sms] provider=aligo status=ready`가 찍힌다. | SUIT | Steven + Claude |
 | 2026-08-11 | **steven-site 실시간 통역 운영 검증 완료**. 전용 systemd 사용자와 Orbitron 단일 소스 UFW 규칙으로 `8201`을 운영 전환하고, worker ready·Orbitron 연결·합성 ko PCM aggregate ko/ja/en final·사이트 same-origin WebSocket 및 stop 정리를 E2E 검증. | steven-site · TwinverseAI | Steven + Codex |
 | 2026-07-22 | **IGOS 외부 공개**: `https://igos.twinverse.org`(포털) · `https://igos-s3.twinverse.org`(MinIO presign) — Cloudflare Tunnel `devdeploy-igos`(203d4746…, systemd `cloudflared-devdeploy-igos`) + dev-nginx vhost `igos.conf`/`igos-s3.conf`(수동 관리 — Orbitron PaaS 자동생성 아님). IGOS 앱 자체는 PaaS가 아닌 `~/igos` 자체 compose 스택. 상세: IGOS `Docs/runbook.md` §9 | IGOS | Steven + Claude |
+| 2026-11-12 | **OpenClaw LAN 모델 전면 교체**. `openclaw`: 로이(`main`)·기본값 `gpt-5.6-sol` → `openai-codex/gpt-6-astra`, `codex-pro` → `openai-codex/gpt-6.1-sol`, 지니(`myjini`) `claude-opus-5` → `claude-cli/claude-fable-5-2`. `openclaw-igos`(rio·ivy·기본값) · `openclaw-suit`(suit-jini·suit-roy·기본값) 전부 `claude-cli/claude-fable-5-2`. 3개 컨테이너 Claude Code 2.1.114 → 2.1.322 (Fable 5.2 는 ≥2.1.290 필요). 전부 핫리로드 반영(재시작 없음), 에이전트별 `--json` 핑으로 실제 실행 모델 확인. 롤백: 각 컨테이너 `/data/.openclaw/openclaw.json.bak-modelupgrade-20261112`. Ollama NPC·bench 에이전트와 Hostinger(비상 보조, `gpt-5.4`)는 미변경. | TwinverseAI · ContentsHub · IGOS · SUIT · DeskRPG | Steven + Claude |
 
 ---
 
